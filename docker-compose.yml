@@ -1,17 +1,19 @@
-version: '3.7'
+version: "3.8"
 
 services:
   rev:
-    image: nginx:1.15
+    image: nginx
     network_mode: "host"
     ports:
       - "443:443"
+      - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./keys/fullchain.pem:/etc/nginx/keys/fullchain.pem:ro
-      - ./keys/privkey.pem:/etc/nginx/keys/privkey.pem:ro
+      - ${PATH_FULLCHAIN:?Environment variable PATH_FULLCHAIN is not set in neither your shell nor .env file!}:/etc/nginx/keys/fullchain.pem:ro
+      - ${PATH_PRIVKEY:?Environment variable PATH_PRIVKEY is not set in neither your shell nor .env file!}:/etc/nginx/keys/privkey.pem:ro
+
   app:
-    image: nextcloud:15-apache
+    image: nextcloud
     restart: always
     ports:
       - "127.0.0.1:3040:80"
@@ -23,9 +25,10 @@ services:
       - MYSQL_USER=nextcloud
       - MYSQL_PASSWORD=nextcloud
     volumes:
-      - ${PWD}/data:/var/www/html
+      - ${PATH_DATA:?Environment variable PATH_DATA is not set in neither your shell nor .env file!}:/var/www/html
+
   db:
-    image: mariadb:10.4
+    image: ghcr.io/linuxserver/mariadb
     restart: always
     command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
     environment:
@@ -34,7 +37,6 @@ services:
       - MYSQL_USER=nextcloud
       - MYSQL_PASSWORD=nextcloud
     expose:
-      - '3306'
+      - "3306"
     volumes:
-      - ${PWD}/db:/var/lib/mysql
-
+      - ${PATH_DB:?Environment variable PATH_DB is not set in neither your shell nor .env file!}:/var/lib/mysql
